@@ -1,0 +1,21 @@
+# Core LangChain packages
+langchain
+langchain-core
+langchain-google-genai
+langchain_huggingface
+langchain_community
+
+sentence-transformers
+
+# LangGraph - The modern way to build agents
+langgraph
+
+
+# Additional dependencies
+pydantic
+typing-extensions
+
+# Env variables
+python-dotenv
+
+pypdf

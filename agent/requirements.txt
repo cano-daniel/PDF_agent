@@ -10,6 +10,9 @@ sentence-transformers
 # LangGraph - The modern way to build agents
 langgraph
 
+# FastAPI
+fastapi
+uvicorn
 
 # Additional dependencies
 pydantic

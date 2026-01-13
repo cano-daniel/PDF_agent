@@ -1,41 +1,24 @@
-# Dockerfile - Instructions for building our Docker image
-# Think of this as a recipe that tells Docker how to create a container with our app
-
-# Start with a base Python image
-# python:3.11-slim is a lightweight version of Python 3.11
-# "slim" means it has fewer pre-installed packages, making it faster to download
+# 1. Use Python 3.11 (Slim version to keep it small)
 FROM python:3.11-slim
 
-# Set the working directory inside the container
-# All subsequent commands will run from this directory
-# This is like doing "cd /app" in a terminal
+# 2. Create and move into the /app folder
 WORKDIR /app
 
-# Copy requirements.txt first
-# We do this separately to take advantage of Docker's layer caching
-# If requirements don't change, Docker won't reinstall packages on rebuild
+# 3. Copy just the library list first (helps build faster next time)
 COPY requirements.txt .
 
-# Install Python dependencies
-# --no-cache-dir reduces the image size by not storing pip's cache
-# This makes our final container smaller and faster to distribute
+# 4. Install the libraries
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of our application code
-# This includes app.py and the templates folder
+# 5. Copy all your project files into the image
 COPY . .
 
-# Expose port 5000
-# This tells Docker that our app listens on port 5000
-# It's documentation - the actual binding happens in app.py
+# 6. Inform Docker we use port 5000
 EXPOSE 5000
 
-# Set environment variables
-# FLASK_APP tells Flask which file contains our application
-# PYTHONUNBUFFERED ensures Python prints appear in Docker logs immediately
+# 7. Set settings: point to app.py and show logs in real-time
 ENV FLASK_APP=app.py
 ENV PYTHONUNBUFFERED=1
 
-# The command to run when the container starts
-# This starts our Flask application
+# 8. Start the Flask app
 CMD ["python", "app.py"]

@@ -42,3 +42,6 @@ clean: stop
 	docker rmi $(IMAGE_NAME) || true
 	# Optional: uncomment to remove network on clean
 	# docker network rm $(NETWORK_NAME) || true
+
+logs:
+	docker logs -f $(CONTAINER_NAME)

@@ -1,6 +1,7 @@
 # Environments
 .env
 .venv
+.pdf
 env/
 venv/
 ENV/

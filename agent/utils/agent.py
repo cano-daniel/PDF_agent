@@ -41,7 +41,7 @@ local_RAG = LocalRAGAgent()
 
 # initialization of the api conection to the llm model
 model = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite",
+    model="gemini-2.5-flash", #gemini-2.5-flash-lite
     temperature=0
 )
 
@@ -99,16 +99,23 @@ class MessagesState(TypedDict):
 # funtions that will be used as nodes for the agent
 def llm_call(state: dict):
     """LLM decides whether to call a tool or not"""
+    
+    # Definimos las instrucciones de formato
+    system_prompt = '''
+        You are a helpful expert assistant wich act as an experto on the field of the PDF content. 
+        Your answers must be based strictly on the provided PDF content.
+
+        FORMATTING RULES:
+        1. Use Markdown for structure (headers, bold, lists).
+        2. For math formulas within a sentence, use single dollar signs: $E=mc^2$.
+        3. For math formulas on their own line, use double dollar signs: 
+           $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+    '''
 
     return {
         "messages": [
             model_with_tools.invoke(
-                [
-                    SystemMessage(
-                        content="You are a helpful assistant tasked with performing a search on a pdf of machine leaning so you should act like a machine leaning expert and based your answers on the pdf"
-                    )
-                ]
-                + state["messages"]
+                [SystemMessage(content=system_prompt)] + state["messages"]
             )
         ],
         "llm_calls": state.get('llm_calls', 0) + 1

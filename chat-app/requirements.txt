@@ -10,3 +10,9 @@ flask-cors==4.0.0
 # Werkzeug - Flask's underlying WSGI toolkit
 # We specify this to ensure compatibility with our Flask version
 Werkzeug==3.0.1
+
+# Requests - Library for making HTTP requests
+requests==2.31.0
+
+# Python-dotenv - Loads environment variables from a .env file
+python-dotenv==1.0.0

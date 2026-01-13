@@ -1,24 +1,24 @@
-# Core LangChain packages
+# Core LangChain
 langchain
 langchain-core
+langchain-community
 langchain-google-genai
-langchain_huggingface
-langchain_community
+langchain-huggingface
 
+# Vector Store
+langchain-chroma
+chromadb
+
+# Embeddings & Agents
 sentence-transformers
-
-# LangGraph - The modern way to build agents
 langgraph
 
-# FastAPI
+# Web Server
 fastapi
 uvicorn
 
-# Additional dependencies
+# Utilities
 pydantic
 typing-extensions
-
-# Env variables
 python-dotenv
-
 pypdf

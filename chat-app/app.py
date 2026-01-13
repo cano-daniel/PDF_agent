@@ -1,6 +1,16 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
+import requests
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+AGENT_SERVICE_HOST = os.getenv('AGENT_SERVICE_HOST')
+AGENT_SERVICE_PORT = os.getenv('AGENT_SERVICE_PORT')
+AGENT_SERVICE_URL = f"http://{AGENT_SERVICE_HOST}:{AGENT_SERVICE_PORT}/search"
 
 # Initialize Flask application
 # Flask is a lightweight web framework that makes it easy to create web applications
@@ -51,9 +61,28 @@ def send_message():
     }
     
     # Create bot response (echoing the same message)
+
+    # Inside another container on the same network:
+    payload = {
+        "text": user_message,
+        "User_id": 'DANIEL'
+    }
+
+    try:
+        # We use the variable injected by Docker here
+        response = requests.post(AGENT_SERVICE_URL, json=payload)
+        response.raise_for_status()
+        
+        agent_data = response.json()
+        # Note: Check if your agent returns 'message' or 'mesagge' (you had a typo in previous code)
+        bot_response_text = agent_data.get('mesagge', agent_data.get('message', 'No response field found'))
+    except requests.exceptions.RequestException as e:
+        print(f"Connection to Agent Failed: {e}")
+        bot_response_text = "System Error: Agent is unreachable."
+    
     bot_msg = {
         'type': 'bot',
-        'content': user_message,  # Simply echo back what was sent
+        'content': bot_response_text,  # Simply echo back what was sent
         'timestamp': timestamp
     }
     

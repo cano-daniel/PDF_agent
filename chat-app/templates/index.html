@@ -225,6 +225,48 @@
             cursor: 'col-resize'
         });
 
+        // 3. THE EVENT LISTENER
+        document.getElementById('chatMessages').addEventListener('click', function (e) {
+            if (e.target.tagName === 'A') {
+                const href = e.target.getAttribute('href');
+
+                // Cambiamos la validación: que contenga '.pdf' en cualquier parte
+                if (href && href.toLowerCase().includes('.pdf')) {
+                    e.preventDefault();
+                    console.log("PDF detectado con página:", href);
+                    updatePDF(href);
+                }
+            }
+        });
+
+        // 2. THE HELPER FUNCTION
+        async function updatePDF(fullHref) {
+            const iframe = document.querySelector('.pdf-viewer');
+
+            // Separamos el nombre del archivo de la página (ej: "doc.pdf#page=5" -> ["doc.pdf", "page=5"])
+            const [filename, pageParam] = fullHref.split('#');
+            const localPath = `/static/${filename}`;
+
+            try {
+                const checkLocal = await fetch(localPath, { method: 'HEAD' });
+
+                if (checkLocal.ok) {
+                    // Si existe, cargamos la ruta con el parámetro de página
+                    iframe.src = `${localPath}${pageParam ? '#' + pageParam : ''}`;
+                } else {
+                    // Si no existe, pedimos a Flask que lo traiga (sin la página para la descarga)
+                    const response = await fetch(`/api/get-pdf/${filename}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Una vez descargado, le pasamos la página al iframe
+                        iframe.src = `${data.path}${pageParam ? '#' + pageParam : ''}?t=${new Date().getTime()}`;
+                    }
+                }
+            } catch (error) {
+                console.error("Error al cargar página específica:", error);
+            }
+        }
         /**
          * Renders Markdown first, then applies KaTeX to the resulting HTML
          */

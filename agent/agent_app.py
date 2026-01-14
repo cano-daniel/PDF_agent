@@ -2,6 +2,8 @@
 # utilities for the web handler
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
+import os
 
 # === agent ===
 # custom agent class
@@ -34,3 +36,17 @@ def run_search(query: Query):
     return {
         "mesagge": agent_message
     }
+
+@app.get("/get-pdf")
+async def get_pdf(file_name: str):
+    pdf_path = "local_rag/pdf_files/" + file_name # Ruta al PDF en el contenedor del agente
+    
+    if os.path.exists(pdf_path):
+        # Retorna el archivo con el tipo de contenido correcto
+        return FileResponse(
+            path= pdf_path, 
+            media_type= 'application/pdf', 
+            filename= file_name + ".pdf"
+        )
+    return {"error": "Archivo no encontrado"}
+

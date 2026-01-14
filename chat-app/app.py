@@ -4,6 +4,7 @@ from datetime import datetime
 import requests
 from dotenv import load_dotenv
 import os
+import io
 
 # Load environment variables from .env file
 load_dotenv()
@@ -121,6 +122,53 @@ def clear_history():
         'success': True,
         'message': 'Chat history cleared'
     })
+
+@app.route('/api/get-pdf/<filename>')
+def get_pdf_from_agent(filename):
+    """
+    Tries to fetch a PDF from the agent service and save it locally in static/
+    """
+    # 1. Limpieza de extensión para evitar duplicados como .pdf.pdf
+    filename = filename.split('#')[0]
+    if not filename.lower().endswith('.pdf'):
+        filename += '.pdf'
+    
+    # 2. Configuración de la URL del Agente (Contenedor FastAPI)
+    # Asegúrate de que AGENT_SERVICE_HOST sea el nombre del servicio en docker-compose
+    AGENT_PDF_URL = f"http://{AGENT_SERVICE_HOST}:{AGENT_SERVICE_PORT}/get-pdf"
+    
+    try:
+        print(f"Requesting {filename} from agent container at {AGENT_PDF_URL}...")
+        
+        # 3. Petición al contenedor del Agente
+        response = requests.get(AGENT_PDF_URL, params={'file_name': filename}, timeout=10)
+        
+        if response.status_code == 200:
+            # 4. PREPARAR LA RUTA Y CARPETA
+            # os.path.join asegura que la ruta sea válida en Linux (Docker)
+            static_folder = os.path.join(app.root_path, 'static')
+            target_path = os.path.join(static_folder, filename)
+            
+            # 5. CREAR LA CARPETA SI NO EXISTE
+            # Esto evita el error de "No such file or directory"
+            os.makedirs(static_folder, exist_ok=True)
+            
+            # 6. ESCRIBIR EL ARCHIVO
+            # 'wb' es para escribir bytes (Binary)
+            with open(target_path, 'wb') as f:
+                f.write(response.content)
+            
+            print(f"Success! {filename} saved to {target_path}")
+            return jsonify({'success': True, 'path': f'/static/{filename}'})
+        
+        else:
+            print(f"Agent returned error {response.status_code} for file {filename}")
+            return jsonify({'success': False, 'error': 'PDF not found on agent'}), 404
+            
+    except Exception as e:
+        # Aquí capturamos errores de conexión o de permisos de escritura
+        print(f"Critical Error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':

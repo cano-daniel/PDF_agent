@@ -98,13 +98,21 @@ class LocalRAGAgent:
         return text_splitter.split_documents(docs)
 
     def add_new_pdf(self, pdf_path):
-        """adds a new pdf file to the vector store"""
-        pdf_filename = os.path.basename(pdf_path)
-        dest_path = os.path.join(self.pdf_storage, pdf_filename)
+        """adds a new pdf file to the vector store with sanitized naming"""
+        # 1. Obtener el nombre original
+        original_filename = os.path.basename(pdf_path)
         
+        # 2. Reemplazar espacios por guiones bajos
+        sanitized_filename = original_filename.replace(' ', '_')
+        
+        # 3. Definir la ruta de destino con el nuevo nombre
+        dest_path = os.path.join(self.pdf_storage, sanitized_filename)
+        
+        # 4. Copiar el archivo (si no existe ya con ese nombre)
         if not os.path.exists(dest_path):
             shutil.copy(pdf_path, dest_path)
         
+        # 5. Procesar el PDF usando la ruta del archivo ya renombrado
         chunks = self._process_pdf(dest_path)
         
         if self.vector_store is None:
@@ -115,7 +123,8 @@ class LocalRAGAgent:
             )
         else:
             self.vector_store.add_documents(chunks)
-        print(f"{pdf_filename} indexado.")
+            
+        print(f"Archivo indexado como: {sanitized_filename}")
 
     def search(self, query, k=3):
         """searches for the query in the vector store

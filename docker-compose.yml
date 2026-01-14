@@ -1,34 +1,32 @@
-# docker-compose.yml - Simplifies running our Docker container
-# Instead of remembering long docker commands, you can just type "docker-compose up"
-
-version: '3.8'
-
 services:
-  # Define our chat application service
+  agent:
+    build:
+      context: ./agent
+    container_name: agent-container
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./agent/.env
+    networks:
+      - agent-network
+
   chat-app:
-    # Build the image from the Dockerfile in the current directory
-    build: .
-
-    # Name our container for easy identification
-    container_name: echo-chat-app
-
-    # Map port 5000 inside the container to port 5000 on your machine
-    # Format is "host_port:container_port"
-    # This means you'll access the app at http://localhost:5000
+    build:
+      context: ./chat-app
+    container_name: flask-app
     ports:
       - "5000:5000"
-
-    # Mount the current directory to /app in the container
-    # This enables hot-reloading: when you edit code, Flask automatically restarts
-    # The :ro flag means "read-only" for security
+    env_file:
+      - ./chat-app/.env
     volumes:
-      - .:/app
+      - ./chat-app:/app
+      # This ensures the PDFs downloaded from the agent stay in your local folder too
+      - ./chat-app/static:/app/static 
+    networks:
+      - agent-network
+    depends_on:
+      - agent
 
-    # Environment variables for the container
-    environment:
-      - FLASK_ENV=development
-      - FLASK_DEBUG=1
-
-    # Automatically restart the container if it crashes
-    # "unless-stopped" means it will restart unless you manually stop it
-    restart: unless-stopped
+networks:
+  agent-network:
+    driver: bridge

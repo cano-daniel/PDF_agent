@@ -1,0 +1,24 @@
+# Core LangChain
+langchain
+langchain-core
+langchain-community
+langchain-google-genai
+langchain-huggingface
+
+# Vector Store
+langchain-chroma
+chromadb
+
+# Embeddings & Agents
+sentence-transformers
+langgraph
+
+# Web Server
+fastapi
+uvicorn
+
+# Utilities
+pydantic
+typing-extensions
+python-dotenv
+pypdf

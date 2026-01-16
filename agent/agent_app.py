@@ -1,9 +1,9 @@
 # === web handler ===
 # utilities for the web handler
-from fastapi import FastAPI
-from pydantic import BaseModel
-from fastapi.responses import FileResponse
-import os
+from fastapi import FastAPI # for web requests
+from pydantic import BaseModel # for data validation
+from fastapi.responses import FileResponse # for file responses
+import os # for file handling
 
 # === agent ===
 # custom agent class
@@ -34,7 +34,7 @@ def run_search(query: Query):
         )
 
     return {
-        "mesagge": agent_message
+        "message": agent_message
     }
 
 @app.get("/get-pdf")

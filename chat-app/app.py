@@ -1,29 +1,38 @@
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
-from datetime import datetime
-import requests
-from dotenv import load_dotenv
-import os
-import io
+# === web handler ===
+from flask import Flask, render_template, request, jsonify # for web requests
+from flask_cors import CORS # for cross-origin resource sharing
+
+# === utilities ===
+from datetime import datetime # for timestamps
+import requests # for http requests
+from dotenv import load_dotenv # for environment variables
+
+# === system ===
+import os # for environment variables
+import io # for file handling
+import logging # for logging
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Agent Service Configuration
 AGENT_SERVICE_HOST = os.getenv('AGENT_SERVICE_HOST')
 AGENT_SERVICE_PORT = os.getenv('AGENT_SERVICE_PORT')
-AGENT_SERVICE_URL = f"http://{AGENT_SERVICE_HOST}:{AGENT_SERVICE_PORT}/search"
+AGENT_SERVICE_URL = f"http://{AGENT_SERVICE_HOST}:{AGENT_SERVICE_PORT}/search" # Agent Service URL
 
 # Initialize Flask application
-# Flask is a lightweight web framework that makes it easy to create web applications
 app = Flask(__name__)
 
 # Enable CORS (Cross-Origin Resource Sharing)
-# This allows your frontend to communicate with the backend even if they're on different ports
 CORS(app)
 
 # Store chat messages in memory (resets when container restarts)
-# In a production app, you'd use a database like PostgreSQL or MongoDB
-chat_history = []
+chat_history = [] # non production ready
 
 
 @app.route('/')
@@ -60,25 +69,23 @@ def send_message():
         'content': user_message,
         'timestamp': timestamp
     }
-    
-    # Create bot response (echoing the same message)
 
     # Inside another container on the same network:
     payload = {
         "text": user_message,
-        "User_id": 'DANIEL'
+        "User_id": 'user' # no user id for now
     }
 
     try:
-        # We use the variable injected by Docker here
+        # communicate with agent service
         response = requests.post(AGENT_SERVICE_URL, json=payload)
         response.raise_for_status()
         
         agent_data = response.json()
-        # Note: Check if your agent returns 'message' or 'mesagge' (you had a typo in previous code)
-        bot_response_text = agent_data.get('mesagge', agent_data.get('message', 'No response field found'))
+        # check if the response has a message field and saves the message
+        bot_response_text = agent_data.get('message', 'Something is wrong with the agent')
     except requests.exceptions.RequestException as e:
-        print(f"Connection to Agent Failed: {e}")
+        logger.error(f"Connection to Agent Failed: {e}")
         bot_response_text = "System Error: Agent is unreachable."
     
     bot_msg = {
@@ -128,46 +135,45 @@ def get_pdf_from_agent(filename):
     """
     Tries to fetch a PDF from the agent service and save it locally in static/
     """
-    # 1. Limpieza de extensión para evitar duplicados como .pdf.pdf
+    # 1. clean the extension to avoid duplicates like .pdf.pdf
     filename = filename.split('#')[0]
     if not filename.lower().endswith('.pdf'):
         filename += '.pdf'
     
-    # 2. Configuración de la URL del Agente (Contenedor FastAPI)
-    # Asegúrate de que AGENT_SERVICE_HOST sea el nombre del servicio en docker-compose
+    # 2. configure the pdf service route
     AGENT_PDF_URL = f"http://{AGENT_SERVICE_HOST}:{AGENT_SERVICE_PORT}/get-pdf"
     
     try:
-        print(f"Requesting {filename} from agent container at {AGENT_PDF_URL}...")
+        logger.info(f"Requesting {filename} from agent container at {AGENT_PDF_URL}...")
         
-        # 3. Petición al contenedor del Agente
+        # 3. request to the pdf service
         response = requests.get(AGENT_PDF_URL, params={'file_name': filename}, timeout=10)
         
         if response.status_code == 200:
-            # 4. PREPARAR LA RUTA Y CARPETA
-            # os.path.join asegura que la ruta sea válida en Linux (Docker)
+            # 4. prepare the path and folder
+            # os.path.join ensures the path is valid in Linux (Docker)
             static_folder = os.path.join(app.root_path, 'static')
             target_path = os.path.join(static_folder, filename)
             
-            # 5. CREAR LA CARPETA SI NO EXISTE
-            # Esto evita el error de "No such file or directory"
+            # 5. create the folder if it doesn't exist
+            # This avoids the "No such file or directory" error
             os.makedirs(static_folder, exist_ok=True)
             
-            # 6. ESCRIBIR EL ARCHIVO
-            # 'wb' es para escribir bytes (Binary)
+            # 6. write the file
+            # 'wb' is for writing bytes (Binary)
             with open(target_path, 'wb') as f:
                 f.write(response.content)
             
-            print(f"Success! {filename} saved to {target_path}")
+            logger.info(f"Success! {filename} saved to {target_path}")
             return jsonify({'success': True, 'path': f'/static/{filename}'})
         
         else:
-            print(f"Agent returned error {response.status_code} for file {filename}")
+            logger.error(f"Agent returned error {response.status_code} for file {filename}")
             return jsonify({'success': False, 'error': 'PDF not found on agent'}), 404
             
     except Exception as e:
-        # Aquí capturamos errores de conexión o de permisos de escritura
-        print(f"Critical Error: {str(e)}")
+        # catch connection or write permissions errors
+        logger.error(f"Critical Error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

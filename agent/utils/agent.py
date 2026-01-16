@@ -118,8 +118,9 @@ def llm_call(state: dict):
         4. REFERENCES SECTION:
         - At the very end of your response, add a horizontal rule `---`.
         - Create a section titled "**Referencias:**".
-        - List every document used with the format: * [[n] Source: Filename, Page: X](filename.pdf#page=X).
+        - List every document used with the format: * [[n] Filename, page X](filename.pdf#page=X).
         - Ensure the filenames in the references also have underscores instead of spaces.
+        - Example: "* [[1] book.pdf, page 10](book.pdf#page=10)."
 
         STRICT CONSTRAINTS:
         - Use the 'source' and 'page' fields from the metadata provided in the context.

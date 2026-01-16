@@ -21,7 +21,7 @@ services:
     volumes:
       - ./chat-app:/app
       # This ensures the PDFs downloaded from the agent stay in your local folder too
-      - ./chat-app/static:/app/static 
+      #- ./chat-app/static:/app/static 
     networks:
       - agent-network
     depends_on:

@@ -1,7 +1,7 @@
 # AI PDF Research Assistant
 
 ## Welcome!
-This full-stack web application revolutionizes how you interact with PDF documents. It provides an intuitive, **split-screen interface** where you can read your research papers, reports, or textbooks on one side, while simultaneously engaging in a real-time conversation with an intelligent **AI agent** on the other. 
+This "full-stack" web application revolutionizes how you interact with PDF documents. It provides an intuitive, **split-screen interface** where you can read your research papers, reports, or textbooks on one side, while simultaneously engaging in a real-time conversation with an intelligent **AI agent** on the other. 
 
 Get instant summaries, ask targeted questions, or dive deep into specific sections of your document, all powered by LLMs.
 
